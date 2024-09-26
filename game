@@ -1,3 +1,6 @@
+@author Seven Blackwell
+// live love code
+
 import pygame
 import numpy as np
 from pygame.locals import *
@@ -11,28 +14,30 @@ pygame.mixer.init()
 pygame.mixer.music.load('/Users/sevenblackwell/Downloads/Aphex twin - Xtal [ ezmp3.cc ].mp3')  
 pygame.mixer.music.play(-1)  
 
+// set fullscreen
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 width, height = screen.get_size() 
 
 pygame.display.set_caption("3D Environment with 5 Layers of White Cubes and Background")
 
-
+// bkgrnd image
 background_image = pygame.image.load('/Users/sevenblackwell/Downloads/recipe-page-main/mntn.jpg')  
 background_image = pygame.transform.scale(background_image, (width, height))  
 
-
+//color of boxes
 WHITE = (255, 255, 255)  
 
 
 camera_pos = np.array([0, 0, -15], dtype=np.float32)  
 camera_rot = np.array([0, 0], dtype=np.float32)  
 
-
+//fov settings
 fov = np.pi / 3 
 aspect_ratio = width / height
 near_plane = 0.1
 far_plane = 100
 
+//3d perspective 
 def perspective_matrix(fov, aspect, near, far):
     f = 1.0 / np.tan(fov / 2.0)
     return np.array([
@@ -44,12 +49,14 @@ def perspective_matrix(fov, aspect, near, far):
 
 projection = perspective_matrix(fov, aspect_ratio, near_plane, far_plane)
 
+//3d points in 2d space
 def project(vertex):
     vertex = np.append(vertex, 1)
     projected_vertex = projection @ vertex
     projected_vertex /= projected_vertex[3]  
     return projected_vertex[:2]
 
+//vertices and edges
 cube_vertices = np.array([
     [-1, -1, -1],
     [1, -1, -1],
@@ -67,6 +74,7 @@ cube_edges = [
     (0, 4), (1, 5), (2, 6), (3, 7)  
 ]
 
+//how 2 move cam
 def move_camera(keys, dt):
     global camera_pos, camera_rot
     speed = 10 * dt 
@@ -99,6 +107,7 @@ def rotate_camera(keys, dt):
     if keys[K_DOWN]:
         camera_rot[1] += rotation_speed  
 
+// 5 layers
 grid_size = 3 
 layer_distance = 10  
 cube_positions = []
@@ -115,7 +124,7 @@ def rotation_matrix_y(angle):
         [0, 1, 0],
         [-sin_theta, 0, cos_theta]
     ])
-
+// main
 running = True
 clock = pygame.time.Clock()
 angle = 0 
@@ -131,13 +140,13 @@ while running:
             running = False
 
     keys = pygame.key.get_pressed()
-
+// move on input
     move_camera(keys, dt)
     rotate_camera(keys, dt)
 
     cos_yaw, sin_yaw = np.cos(camera_rot[0]), np.sin(camera_rot[0])
     cos_pitch, sin_pitch = np.cos(camera_rot[1]), np.sin(camera_rot[1])
-
+// make rotation matrix for cubes
     camera_rotation_matrix = np.array([
         [cos_yaw, 0, -sin_yaw],
         [sin_yaw * sin_pitch, cos_pitch, cos_yaw * sin_pitch],
@@ -150,6 +159,7 @@ while running:
         cube_rotation = rotation_matrix_y(angle)
 
         for edge in cube_edges:
+// move relative to camera etc
             points = []
             for vertex in edge:
                 v = cube_rotation @ cube_vertices[vertex]  
